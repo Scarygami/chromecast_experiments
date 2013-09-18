@@ -1,0 +1,11 @@
+#receiver_list {
+  list-style: none;
+  padding-left: 0px;
+}
+
+.receiver {
+	cursor: pointer;
+	font-weight: bold;
+	text-decoration: underline;
+	color: blue;
+}

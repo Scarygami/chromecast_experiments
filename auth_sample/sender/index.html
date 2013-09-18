@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html data-cast-api-enabled="true">
+  <head>
+    <title>Hello World Chrome Sender</title>
+    <link rel="stylesheet" type="text/css" href="sender.css">
+  </head>
+  <body>
+    <div id="signinButton">
+      <span
+        class="g-signin"
+        data-callback="signinCallback"
+        data-clientid="<YOUR_CLIENT_ID_HERE>"
+        data-cookiepolicy="single_host_origin"
+        data-scope="https://www.googleapis.com/auth/plus.login">
+      </span>
+    </div>
+    <div id="app" style="display: none;">
+      <button id="signoutButton">Sign out and disconnect</button>
+      <div id="receiver_div">
+        <h3>Choose A Receiver</h3>
+        <ul id="receiver_list">
+          <li>Looking for receivers...</li>
+        </ul>
+      </div>
+      <button id="kill" disabled>Kill the Connection</button>
+    </div>
+    <script src="sender.js"></script>
+  </body>
+</html>
