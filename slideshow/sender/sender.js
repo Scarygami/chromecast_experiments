@@ -6,29 +6,43 @@
     my_namespace = "<YOUR_NAMESPACE_HERE>",
     doc = global.document,
     con = global.console,
+    gapi, my_id,
     cast_api,
     cast_activity,
     receivers,
+    currentCast,
     receiverList = doc.getElementById("receiver_list"),
     killSwitch = doc.getElementById("kill"),
     appDiv = doc.getElementById("app"),
     signinButton = doc.getElementById("signinButton"),
-    signoutButton = doc.getElementById("signoutButton");
+    signoutButton = doc.getElementById("signoutButton"),
+    albumsDiv = doc.getElementById("albums");
 
-  con.log("Sender started.");
+  // Fetch data via jsonp
+  function fetchData(url, cb) {
+    var script;
+
+    global.jsonp_callback = function (data) {
+      cb(data);
+    };
+
+    if (url.indexOf("?") >= 0) {
+      url += "&";
+    } else {
+      url += "?";
+    }
+    url += "callback=jsonp_callback";
+
+    script = doc.createElement("script");
+    script.src = url;
+    doc.head.appendChild(script);
+  }
 
   function onLaunch(activity) {
     if (activity.status === 'running') {
       cast_activity = activity;
-      killSwitch.disabled = false;
-
-      /*
-       * Important note:
-       * This will send your access token via an unsecured websocket to the Chromecast receiver.
-       * The data won't leave your local network, and tokens expire after 1 hour by default.
-       * Still better not to use this for tokens with too many critical permissions.
-       */
-      cast_api.sendMessage(cast_activity.activityId, my_namespace, global.gapi.auth.getToken());
+      killSwitch.style.display = "inline-block";
+      albumsDiv.style.display = "block";
     }
   }
 
@@ -60,35 +74,86 @@
 
   function onReceiverList(list) {
     var i, item;
-    con.log("Receivers changed");
-    con.log(list);
     if (list.length > 0) {
       receivers = list;
       receiverList.innerHTML = "";
       for (i = 0; i < receivers.length; i++) {
-        item = doc.createElement("li");
+        item = doc.createElement("span");
         item.setAttribute("data-id", receivers[i].id);
         item.className = "receiver";
         item.innerHTML = receivers[i].name;
         receiverList.appendChild(item);
         item.onclick = receiverClicked;
       }
+    } else {
+      receiverList.innerHTML = "Looking for receivers...";
     }
   }
 
-  function initializeApi() {
+  function castAlbum(e) {
+    var url = e.target.getAttribute("data-url");
+    if (!!cast_activity && !!url) {
+      if (currentCast === e.target) {
+        // album is already being cast, stop casting
+        currentCast.src = "cast.png";
+        currentCast = null;
+        cast_api.sendMessage(cast_activity.activityId, my_namespace, {"action": "STOP_CAST"});
+      } else {
+        if (!!currentCast) {
+          currentCast.src = "cast.png";
+        }
+        currentCast = e.target;
+        currentCast.src = "casting.png";
+        cast_api.sendMessage(cast_activity.activityId, my_namespace, {"url": url});
+      }
+    }
+  }
+
+  function showAlbums(data) {
+    var i, album, div, img;
+    if (!!data && !!data.feed && !!data.feed.entry && data.feed.entry.length > 0) {
+      albumsDiv.innerHTML = "";
+      for (i = 0; i < data.feed.entry.length; i++) {
+        album = data.feed.entry[i];
+        if (album.gphoto$numphotos.$t > 3) { // skipping small albums (mostly photos from posts)
+          div = doc.createElement("div");
+          div.className = "album";
+          img = doc.createElement("img");
+          img.src = album.media$group.media$thumbnail[0].url.replace("/s160-c/", "/s100-c/");
+          div.appendChild(img);
+          img = doc.createElement("img");
+          img.src = "cast.png";
+          img.className = "cast";
+          img.setAttribute("data-url", album.link[0].href);
+          img.title = album.title.$t + " / " + album.gphoto$numphotos.$t  + " photos";
+          div.appendChild(img);
+          albumsDiv.appendChild(div);
+          img.onclick = castAlbum;
+        }
+      }
+    }
+  }
+
+  function initializeApp() {
+    gapi = global.gapi;
     if (!cast_api) {
-      con.log("API initialized");
       cast_api = new global.cast.Api();
       cast_api.addReceiverListener(my_app_id, onReceiverList);
     }
+
+    gapi.client.load("plus", "v1", function () {
+      gapi.client.plus.people.get({"userId": "me"}).execute(function (data) {
+        my_id = data.id;
+        fetchData("https://picasaweb.google.com/data/feed/api/user/" + my_id + "?kind=album&alt=json", showAlbums);
+      });
+    });
   }
 
   global.signinCallback = function (authResult) {
     if (!authResult.error) {
       signinButton.style.display = "none";
       appDiv.style.display = "block";
-      initializeApi();
+      initializeApp();
     }
   };
 
@@ -114,7 +179,12 @@
     if (!!cast_activity) {
       cast_api.stopActivity(cast_activity.activityId, function() {
         cast_activity = null;
-        killSwitch.disabled = true;
+        if (!!currentCast) {
+          currentCast.src = "cast.png";
+        }
+        currentCast = null;
+        killSwitch.style.display = "none";
+        albumsDiv.style.display = "none";
       });
     }
   }

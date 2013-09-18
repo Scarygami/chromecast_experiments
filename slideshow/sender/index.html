@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html data-cast-api-enabled="true">
+  <head>
+    <title>Slideshow for Chromecast</title>
+    <link rel="stylesheet" type="text/css" href="sender.css">
+  </head>
+  <body>
+    <div id="signinButton">
+      <span
+        class="g-signin"
+        data-callback="signinCallback"
+        data-clientid="<YOUR_CLIENT_ID_HERE>"
+        data-cookiepolicy="single_host_origin"
+        data-scope="https://www.googleapis.com/auth/plus.login https://picasaweb.google.com/data/">
+      </span>
+    </div>
+    <div id="app" style="display: none;">
+      <button id="signoutButton">Sign out and disconnect</button>
+      <div id="receiver_div">
+        Choose a receiver: <span id="receiver_list">Looking for receivers...</span>
+        <button id="kill" style="display: none;">Close connection</button>
+      </div><br><br>
+      <div id="albums" style="display: none;">Fetching albums, please wait...</div>
+    </div>
+    <script src="sender.js"></script>
+  </body>
+</html>
