@@ -43,4 +43,4 @@
   receiver.start();
   channelHandler.addEventListener(global.cast.receiver.Channel.EventType.MESSAGE, onMessage);
 
-  }(this));
+}(this));
