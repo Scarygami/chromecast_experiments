@@ -1,0 +1,14 @@
+bin/
+gen/
+libs/
+.metadata/
+*.apk
+*.ap_
+*.dex
+*.class
+.classpath
+.project
+.settings/
+proguard/
+project.properties
+proguard-project.txt
