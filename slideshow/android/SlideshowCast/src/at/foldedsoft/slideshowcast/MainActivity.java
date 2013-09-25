@@ -1,5 +1,7 @@
 package at.foldedsoft.slideshowcast;
 
+import java.io.IOException;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.SignInButton;
@@ -8,11 +10,19 @@ import com.google.android.gms.common.GooglePlayServicesClient.OnConnectionFailed
 import com.google.android.gms.plus.PlusClient;
 import com.google.android.gms.plus.PlusClient.OnAccessRevokedListener;
 import com.google.android.gms.plus.model.people.Person;
+import com.google.cast.ApplicationChannel;
+import com.google.cast.ApplicationMetadata;
+import com.google.cast.ApplicationSession;
+import com.google.cast.SessionError;
 import com.google.cast.CastContext;
 import com.google.cast.CastDevice;
 import com.google.cast.MediaRouteAdapter;
 import com.google.cast.MediaRouteHelper;
 import com.google.cast.MediaRouteStateChangeListener;
+import com.google.cast.MessageStream;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -21,6 +31,7 @@ import android.support.v7.media.MediaRouteSelector;
 import android.support.v7.media.MediaRouter;
 import android.support.v7.media.MediaRouter.RouteInfo;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,10 +46,14 @@ public class MainActivity extends FragmentActivity
 			       OnConnectionFailedListener,
              View.OnClickListener,
              OnAccessRevokedListener,
-             MediaRouteAdapter {
+             MediaRouteAdapter,
+             ApplicationSession.Listener {
 
   private static final int REQUEST_CODE_SIGN_IN = 1;
 
+  private static final String APP_ID = "de994775-5702-4800-b58d-74fb08dcc6c3";
+  private static final String NAMESPACE = "allmyplus";
+  
   private PlusClient mPlusClient;
   private ConnectionResult mConnectionResult;
   private Menu mMenu;
@@ -57,9 +72,12 @@ public class MainActivity extends FragmentActivity
   private MediaRouter mMediaRouter;
   private MediaRouteSelector mMediaRouteSelector;
   private MediaRouter.Callback mMediaRouterCallback;
+  //private MediaRouteStateChangeListener mRouteStateListener;
+  
   private CastDevice mSelectedDevice;
-  private MediaRouteStateChangeListener mRouteStateListener;
-	
+  private ApplicationSession mSession;
+  private AlbumMessageStream mMessageStream;
+  
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -86,6 +104,7 @@ public class MainActivity extends FragmentActivity
     mMediaRouteButton = (MediaRouteButton) findViewById(R.id.media_route_button);
     mMediaRouteButton.setRouteSelector(mMediaRouteSelector);
     mMediaRouterCallback = new MyMediaRouterCallback();
+    mMessageStream = new AlbumMessageStream();
   }
 
   @Override
@@ -229,9 +248,13 @@ public class MainActivity extends FragmentActivity
     } else {
       mUserInfo.setVisibility(View.GONE);
     }
-  
     mSignInButton.setVisibility(mConnected ? View.GONE : View.VISIBLE);
     mContent.setVisibility(mConnected ? View.VISIBLE : View.GONE);
+    if (mSession != null && mSession.hasStarted()) {
+      mGridView.setVisibility(View.VISIBLE);
+    } else {
+      mGridView.setVisibility(View.GONE);
+    }
   }
 
   private void updateAlbums() {
@@ -246,15 +269,6 @@ public class MainActivity extends FragmentActivity
     search.execute();
   }
   
-  private class SearchReceiver extends AsyncReceiver {
-    @Override
-    public void finished(int results) {
-      if (results > 0) {
-        // refresh();
-      }
-    }
-  }
-  
   private class MyMediaRouterCallback extends MediaRouter.Callback {
     @Override
     public void onRouteSelected(MediaRouter router, RouteInfo route) {
@@ -263,16 +277,27 @@ public class MainActivity extends FragmentActivity
 
     @Override
     public void onRouteUnselected(MediaRouter router, RouteInfo route) {
+      mSession = null;
       mSelectedDevice = null;
-      mRouteStateListener = null;
+      //mRouteStateListener = null;
     }
   }
   
   @Override
   public void onDeviceAvailable(CastDevice device, String routeId,
-          MediaRouteStateChangeListener listener) {
-      mSelectedDevice = device;
-      mRouteStateListener = listener;
+                                MediaRouteStateChangeListener listener) {
+    mSelectedDevice = device;
+    //mRouteStateListener = listener;
+    
+    mSession = new ApplicationSession(mCastContext, mSelectedDevice);
+    mSession.setListener(this);
+    try {
+      mSession.startSession(APP_ID, null);
+    } catch (IllegalStateException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -283,5 +308,91 @@ public class MainActivity extends FragmentActivity
   @Override
   public void onUpdateVolume(double delta) {
       // Handle volume change.
+  }
+
+  @Override
+  public void onSessionStarted(ApplicationMetadata appMetadata) {
+    if (!mSession.hasChannel()) {
+      // Application does not support a channel!
+      Log.d("slideshowcast", "No Channel supported");
+      return;
+    }
+    ApplicationChannel channel = mSession.getChannel();
+    channel.attachMessageStream(mMessageStream);
+    updateUI();
+  }
+
+  @Override
+  public void onSessionStartFailed(SessionError error) {
+    // The session could not be started.
+    Log.e("slideshowcast", "Couldn't start session " + error.toString());
+  }
+
+  @Override
+  public void onSessionEnded(SessionError error) {
+    if (error != null) {
+       Log.e("slideshowcast", "Session ended with error " + error.toString());
+    } else {
+      // The session ended normally.
+    }
+  }
+
+  private class SearchReceiver extends AsyncReceiver {
+    @Override
+    public void finished(int results) {
+      if (results > 0) {
+        // refresh();
+      }
+    }
+  }
+  
+  public class AlbumMessageStream extends MessageStream {
+    private static final String KEY_ACTION = "action";
+    private static final String KEY_URL = "url";
+    
+    private static final String ACTION_STOP = "STOP_CAST";
+
+    public AlbumMessageStream() {
+      super(NAMESPACE);
+    }
+
+    public final void sendUrl(String url) {
+      JSONObject payload = new JSONObject();
+      try {
+        payload.put(KEY_URL, url);
+      } catch (JSONException e) {
+        e.printStackTrace();
+        return;
+      }
+      try {
+        sendMessage(payload);
+      } catch (IllegalStateException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+    public final void stopSlideshow() {
+      JSONObject payload = new JSONObject();
+      try {
+        payload.put(KEY_ACTION, ACTION_STOP);
+      } catch (JSONException e) {
+        e.printStackTrace();
+        return;
+      }
+      try {
+        sendMessage(payload);
+      } catch (IllegalStateException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+    @Override
+    public final void onMessageReceived(JSONObject message) {
+      // Nothing to do yet, no messages expected from receiver
+    }
   }
 }
