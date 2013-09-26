@@ -43,7 +43,7 @@
 	  <GridView
 	    android:id="@+id/album_grid"
 	    android:numColumns="auto_fit"
-	    android:columnWidth="90dp"
+	    android:columnWidth="120dp"
 	    android:horizontalSpacing="5dp"
 	    android:verticalSpacing="5dp"
 	    android:layout_width="match_parent"

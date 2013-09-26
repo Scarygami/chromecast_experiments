@@ -7,7 +7,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.net.ssl.HttpsURLConnection;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,16 +23,16 @@ import android.util.Log;
 import com.google.android.gms.auth.GoogleAuthException;
 import com.google.android.gms.auth.GoogleAuthUtil;
 
-public class PicasaAlbumsTask  extends AsyncTask<Void, Void, Boolean> {
+public class PicasaAlbumsTask  extends AsyncTask<Void, Void, List<PicasaAlbum>> {
 
-  AsyncReceiver receiver;
+  AsyncReceiver<List<PicasaAlbum>> receiver;
   Context context;
   String account;
   String scopes;
   String id;
   //TrackerDBAdapter db;
 
-  PicasaAlbumsTask(AsyncReceiver receiver, /*TrackerDBAdapter db,*/ Context context, String account, String id, String scopes) {
+  PicasaAlbumsTask(AsyncReceiver<List<PicasaAlbum>> receiver, /*TrackerDBAdapter db,*/ Context context, String account, String id, String scopes) {
     this.receiver = receiver;
     this.context = context;
     this.account = account;
@@ -37,7 +42,7 @@ public class PicasaAlbumsTask  extends AsyncTask<Void, Void, Boolean> {
   }
 
   @Override
-  protected Boolean doInBackground(Void... params) {
+  protected List<PicasaAlbum> doInBackground(Void... params) {
     URL url;
     HttpsURLConnection urlConnection;
     InputStream in;
@@ -48,17 +53,17 @@ public class PicasaAlbumsTask  extends AsyncTask<Void, Void, Boolean> {
       accessToken = GoogleAuthUtil.getToken(this.context, this.account, this.scopes);
     } catch (GoogleAuthException e) {
       e.printStackTrace();
-      return false;
+      return null;
     } catch (IOException e) {
       e.printStackTrace();
-      return false;
+      return null;
     }
-    if (accessToken == null) return false;
+    if (accessToken == null) return null;
     try {
       url = new URL("https://picasaweb.google.com/data/feed/api/user/default?alt=json&access=public&type=album");
     } catch (MalformedURLException e) {
       e.printStackTrace();
-      return false;
+      return null;
     }
     try {
       urlConnection = (HttpsURLConnection) url.openConnection();
@@ -70,28 +75,40 @@ public class PicasaAlbumsTask  extends AsyncTask<Void, Void, Boolean> {
       }
     } catch (IOException e) {
       e.printStackTrace();
-      return false;
+      return null;
     }
     JSONObject json;
     try {
       json = new JSONObject(result);
       if (json.has("feed")) {
         json = json.optJSONObject("feed");
-        // TODO: handle feed
+        List<PicasaAlbum> albums = new ArrayList<PicasaAlbum>();
+        if (json.has("entry")) {
+          JSONArray entries = json.optJSONArray("entry");
+          for (int i = 0; i < entries.length(); i++) {
+            JSONObject entry = entries.optJSONObject(i);
+            if (entry != null) {
+              PicasaAlbum album = new PicasaAlbum(entry);
+              if (album.name != "" && album.photos > 3) {
+                albums.add(album);
+              }
+            }
+          }
+        }
         Log.d("picasa", json.toString());
-        return true;
+        return albums;
       } else {
-        return false;
+        return null;
       }
     } catch (JSONException e) {
       e.printStackTrace();
-      return false;
+      return null;
     }
   }
 
-  protected void onPostExecute(Boolean result) {
-    if (result) {
-      receiver.finished(1);
+  protected void onPostExecute(List<PicasaAlbum> result) {
+    if (result != null) {
+      receiver.finished(result);
     }
   }
 }

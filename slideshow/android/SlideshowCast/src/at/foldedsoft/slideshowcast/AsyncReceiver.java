@@ -1,5 +1,5 @@
 package at.foldedsoft.slideshowcast;
 
-public abstract class AsyncReceiver {
-  public abstract void finished(int results);
+public abstract class AsyncReceiver<T> {
+  public abstract void finished(T result);
 }

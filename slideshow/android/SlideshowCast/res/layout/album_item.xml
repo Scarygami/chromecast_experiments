@@ -5,11 +5,13 @@
 
     <ImageView
         android:id="@+id/album_thumb"
-        android:contentDescription="@string/album_thumb"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
+        android:contentDescription="@string/album_thumb"
+        android:minHeight="120dp"
+        android:minWidth="120dp"
         android:src="@android:drawable/ic_menu_gallery" />
 
     <TextView

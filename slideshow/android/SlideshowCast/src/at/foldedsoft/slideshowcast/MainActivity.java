@@ -1,6 +1,7 @@
 package at.foldedsoft.slideshowcast;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -337,11 +338,16 @@ public class MainActivity extends FragmentActivity
     }
   }
 
-  private class SearchReceiver extends AsyncReceiver {
+  void refresh(List<PicasaAlbum> results) {
+    PicasaAlbumAdapter adapter = new PicasaAlbumAdapter(this, 0, results);
+    mGridView.setAdapter(adapter);
+  }
+  
+  private class SearchReceiver extends AsyncReceiver<List<PicasaAlbum>> {
     @Override
-    public void finished(int results) {
-      if (results > 0) {
-        // refresh();
+    public void finished(List<PicasaAlbum> result) {
+      if (result != null) {
+        refresh(result);
       }
     }
   }
