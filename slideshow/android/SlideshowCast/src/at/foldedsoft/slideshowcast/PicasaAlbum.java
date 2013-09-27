@@ -3,11 +3,11 @@ package at.foldedsoft.slideshowcast;
 import org.json.JSONObject;
 
 public class PicasaAlbum {
-  public String id;
-  public String name;
-  public int photos;
-  public String url;
-  public String image;
+  private String id;
+  private String name;
+  private int photos;
+  private String url;
+  private String image;
   
   public PicasaAlbum(String id, String name, int photos, String url, String image) {
     this.id = id;
@@ -24,4 +24,10 @@ public class PicasaAlbum {
     this.url = entry.optJSONArray("link").optJSONObject(0).optString("href");
     this.image = entry.optJSONObject("media$group").optJSONArray("media$thumbnail").optJSONObject(0).optString("url");
   }
+  
+  public String getId() { return this.id; }
+  public String getUrl() { return this.url; }
+  public int getPhotos() { return this.photos; }
+  public String getName() { return this.name; }
+  public String getImage() { return this.image; }
 }

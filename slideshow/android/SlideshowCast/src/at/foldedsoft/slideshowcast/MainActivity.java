@@ -37,6 +37,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.content.Intent;
@@ -90,6 +92,19 @@ public class MainActivity extends FragmentActivity
     mContent = findViewById(R.id.content);
     mUserInfo = (TextView) findViewById(R.id.user_info);
     mGridView = (GridView) findViewById(R.id.album_grid);
+    
+    mGridView.setOnItemClickListener(new OnItemClickListener() {
+      @Override
+      public void onItemClick(AdapterView<?> parent, View view, 
+              int position, long id) {
+        if (mMessageStream != null && mSession != null && mSession.hasStarted()) {
+          PicasaAlbum album = ((PicasaAlbumAdapter) mGridView.getAdapter()).getItem(position);
+          if (album != null) {
+            mMessageStream.sendUrl(album.getUrl());
+          }
+        }
+      }
+    });
     
     mPlusClient =
         new PlusClient.Builder(this, this, this)

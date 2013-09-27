@@ -12,7 +12,9 @@
         android:contentDescription="@string/album_thumb"
         android:minHeight="120dp"
         android:minWidth="120dp"
-        android:src="@android:drawable/ic_menu_gallery" />
+        android:src="@android:drawable/ic_menu_gallery"
+        android:clickable="false"
+        android:focusable="false" />
 
     <TextView
         android:id="@+id/album_name"
@@ -22,6 +24,8 @@
         android:gravity="center_horizontal"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:background="#80000000"
-        android:textColor="#CCCCCC"/>
+        android:textColor="#CCCCCC"
+        android:clickable="false"
+        android:focusable="false" />
     
 </RelativeLayout>

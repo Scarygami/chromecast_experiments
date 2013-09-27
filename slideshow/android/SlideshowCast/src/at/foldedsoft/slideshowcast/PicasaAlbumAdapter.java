@@ -2,12 +2,15 @@ package at.foldedsoft.slideshowcast;
 
 import java.util.List;
 
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 public class PicasaAlbumAdapter extends ArrayAdapter<PicasaAlbum> {
@@ -31,9 +34,9 @@ public class PicasaAlbumAdapter extends ArrayAdapter<PicasaAlbum> {
     PicasaAlbum album = mAlbums.get(position);
     if (album != null) {
       TextView t = (TextView) v.findViewById(R.id.album_name);
-      t.setText(album.name + " (" + String.valueOf(album.photos) + " photos)");
-      
-      // TODO: Set image thumbnail
+      ImageView i = (ImageView) v.findViewById(R.id.album_thumb);
+      t.setText(album.getName() + " (" + String.valueOf(album.getPhotos()) + " photos)");
+      UrlImageViewHelper.setUrlDrawable(i, album.getImage());
     }
     return v;
   }

@@ -30,15 +30,13 @@ public class PicasaAlbumsTask  extends AsyncTask<Void, Void, List<PicasaAlbum>> 
   String account;
   String scopes;
   String id;
-  //TrackerDBAdapter db;
 
-  PicasaAlbumsTask(AsyncReceiver<List<PicasaAlbum>> receiver, /*TrackerDBAdapter db,*/ Context context, String account, String id, String scopes) {
+  PicasaAlbumsTask(AsyncReceiver<List<PicasaAlbum>> receiver, Context context, String account, String id, String scopes) {
     this.receiver = receiver;
     this.context = context;
     this.account = account;
     this.scopes = scopes;
     this.id = id;
-    //this.db = db;
   }
 
   @Override
@@ -89,7 +87,7 @@ public class PicasaAlbumsTask  extends AsyncTask<Void, Void, List<PicasaAlbum>> 
             JSONObject entry = entries.optJSONObject(i);
             if (entry != null) {
               PicasaAlbum album = new PicasaAlbum(entry);
-              if (album.name != "" && album.photos > 3) {
+              if (album.getName() != "" && album.getPhotos() > 3) {
                 albums.add(album);
               }
             }
