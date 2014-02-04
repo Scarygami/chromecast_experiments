@@ -1,15 +1,14 @@
-(function(global) {
+(function (global) {
   "use strict";
-
   var
-    my_app_id = "<YOUR_CHROMECAST_APP_ID_HERE>",
-    my_namespace = "<YOUR_NAMESPACE_HERE>",
     doc = global.document,
-    receiver,
-    channelHandler,
-    messages = doc.getElementById("messages"),
-    max_width = messages.offsetWidth,
-    max_height = messages.offsetHeight,
+    namespace = "urn:x-cast:com.appspot.allmyplus.photocast",
+    dom = {
+      "message": doc.getElementById("message")
+    },
+    castReceiverManager, messageBus,
+    max_width = dom.message.offsetWidth,
+    max_height = dom.message.offsetHeight,
     callback_count = 0,
     photos = [], currentPhoto = -1, timer, stopped = false, displayTime = 4000;
 
@@ -74,14 +73,11 @@
           }
           img.style.width = w + "px";
           img.style.height = h + "px";
-          if (h < max_height) {
-            img.style.marginTop = ((max_height - h) / 2) + "px";
-          }
 
           img.src = image.src;
 
-          messages.innerHTML = "";
-          messages.appendChild(img);
+          dom.message.innerHTML = "";
+          dom.message.appendChild(img);
 
           // immediately start loading the next image
           timer = global.setTimeout(slideShow, 1);
@@ -90,7 +86,7 @@
       start = (new Date()).getTime();
       image.src = photos[currentPhoto];
     } else {
-      messages.innerHTML = "No photos found.";
+      dom.message.innerHTML = "No photos found.";
     }
   }
 
@@ -105,34 +101,54 @@
       }
     }
     stopped = false;
+    castReceiverManager.setApplicationState("Displaying slideshow...");
     global.setTimeout(slideShow, 1);
   }
 
-  function onMessage(event) {
-    if (!!event.message.url) {
-      // Stop previous slideshow if still running
-      stopped = true;
-      global.clearTimeout(timer);
+  function init() {
+    castReceiverManager = global.cast.receiver.CastReceiverManager.getInstance();
 
-      messages.innerHTML = "Fetching photos...";
-      fetchData(event.message.url, loadAlbum);
-      return;
-    }
-    if (!!event.message.action) {
-      if (event.message.action === "STOP_CAST") {
+    castReceiverManager.onReady = function() {
+      castReceiverManager.setApplicationState("Application status is ready.");
+    };
+
+    castReceiverManager.onSenderDisconnected = function() {
+      if (castReceiverManager.getSenders().length === 0) {
+        global.close();
+      }
+    };
+
+    messageBus = castReceiverManager.getCastMessageBus(namespace, global.cast.receiver.CastMessageBus.MessageType.JSON);
+
+    messageBus.onMessage = function(event) {
+
+      // Handle message
+      if (!!event.data.url) {
+        // Stop previous slideshow if still running
         stopped = true;
         global.clearTimeout(timer);
-        messages.innerHTML = "Waiting for input...";
-        return;
+
+        dom.message.innerHTML = "Photocast fetching photos...";
+        castReceiverManager.setApplicationState("Fetching photos...");
+        fetchData(event.data.url, loadAlbum);
+      } else {
+        if (!!event.data.action) {
+          if (event.data.action === "STOP_CAST") {
+            stopped = true;
+            global.clearTimeout(timer);
+            dom.message.innerHTML = "Photocast waiting for input...";
+            castReceiverManager.setApplicationState("Waiting for input...");
+          }
+        }
       }
-    }
+
+      messageBus.send(event.senderId, event.data);
+    };
+
+    // initialize the CastReceiverManager with an application status message
+    castReceiverManager.start({statusText: "Application is starting"});
   }
 
-  // initialize receiver
-  receiver = new global.cast.receiver.Receiver(my_app_id, [my_namespace]);
-  channelHandler = new global.cast.receiver.ChannelHandler(my_namespace);
-  channelHandler.addChannelFactory(receiver.createChannelFactory(my_namespace));
-  receiver.start();
-  channelHandler.addEventListener(global.cast.receiver.Channel.EventType.MESSAGE, onMessage);
+  global.onload = init;
 
 }(this));

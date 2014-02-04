@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PhotoCast</title>
+<link rel="stylesheet" href="bootstrap.css">
+<link rel="stylesheet" href="card.css">
+<link rel="stylesheet" href="sender.css">
+<script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js"></script>
+</head>
+<body>
+    <div class="header">
+      <h3>Photocast</h3>
+    </div>
+    <div class="container">
+      <div class="row" id="messageCard" style="display: none;">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-body">
+              <div id="message"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="signinButton" style="display: none;">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-body">
+              <span
+                class="g-signin"
+                data-callback="signinCallback"
+                data-clientid="YOUR-CLIENT_ID"
+                data-cookiepolicy="single_host_origin"
+                data-scope="https://www.googleapis.com/auth/plus.login https://picasaweb.google.com/data/"
+                data-width="wide" data-height="tall">
+              </span>
+              <p class="disclaimer">
+                By signing in with Google+ you give us permission to fetch a list of albums you uploaded to Google+.<br>
+                This list will only be visible to you and we won't cache it on our server.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="app" style="display: none;">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-heading simple" id="albumheader">Pick one of your albums to cast...</div>
+              <div class="card-body">
+                <div id="albums">Fetching albums, please wait...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-body">
+                <div id="signoutButton" class="signout"><span class="icon"></span><span class="label">Sign out &amp; disconnect</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      Developed by <a href="https://google.com/+Gerwin Sturm">Gerwin Sturm</a>, <a href="http://www.foldedsoft.at/">FoldedSoft e.U.</a>
+    </div>
+    <script src="sender.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: OpenSans, Helvetica, Arial, sans;
+  margin: 0;
+  text-align: center;
+  overflow: auto;
+  background-color: #f4f4f4;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.album {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+  width: 130px;
+  text-align: center;
+  margin: 5px 0;
+}
+
+.cast {
+  cursor: pointer;
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  background-color: rgba(255,255,255,0.5);
+  border-radius: 6px;
+}
+
+.plus {
+  cursor: pointer;
+  position: absolute;
+  left: 10px;
+  bottom: 5px;
+  background-color: rgba(255,255,255,0.5);
+  border-radius: 6px;
+}
+
+.cast:hover {
+  background-color: #0F0;
+}
+
+.plus:hover {
+  background-color: #F00;
+}
+
+.no_receiver .cast {
+  display: none;
+}
+
+/* Custom page header  */
+.header {
+  border-bottom: 1px solid #e5e5e5;
+}
+/* Make the masthead heading the same height as the navigation  */
+.header h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+  line-height: 40px;
+  padding-bottom: 19px;
+}
+
+/* Custom page footer */
+.footer {
+  padding-top: 19px;
+  color: #777;
+  border-top: 1px solid #e5e5e5;
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 90%;
+  }
+}
+
+.disclaimer {
+  color: #777;
+  font-size: 0.9em;
+}
+
+.signout {
+  display: inline-block;
+  background: #999;
+  color: white;
+  border-radius: 5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.signout:hover {
+  background: #555;
+}
+
+.signout .icon {
+  display: inline-block;
+  vertical-align: middle;
+  height: 35px;
+}
+
+.label {
+  display: inline-block;
+  vertical-align: middle;
+  padding-left: 35px;
+  padding-right: 35px;
+  font-size: 14px;
+  font-weight: bold;
+}

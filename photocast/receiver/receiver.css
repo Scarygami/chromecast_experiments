@@ -1,0 +1,21 @@
+body {
+	overflow:hidden;
+}
+div {
+	height: 720px;
+	width: 1280px;
+	text-align:center;
+	border:0px solid silver;
+	display: table-cell;
+	vertical-align:middle;
+	color:#FFFFFF;
+	background-color:#000000;
+	font-weight:bold;
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:40px;
+}
+
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
