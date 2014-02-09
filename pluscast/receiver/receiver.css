@@ -1,0 +1,84 @@
+body {
+  overflow:hidden;
+}
+#main {
+  position: relative;
+  height: 720px;
+  width: 1280px;
+  font-family:Verdana, Geneva, sans-serif;
+  font-size:25px;
+  background-color:#000000;
+  border: 0;
+  color:#FFFFFF;
+}
+
+#posts {
+  width: 90%;
+  margin: 0 auto;
+  height: 640px;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+#overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,1) 85%);
+}
+
+.post {
+  position: relative;
+  margin-bottom: 20px;
+  max-height: 0px;
+  opacity: 0;
+  transition: opacity 2s, max-height 1s;
+}
+
+.post .pic {
+  position: absolute;
+  top: 0; left: 0;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+}
+
+.post .name {
+  position: absolute;
+  font-weight: bold;
+  top: 25px;
+  left: 105px;
+}
+
+.post .time {
+  font-size: 0.8em;
+  position: absolute;
+  top: 5px;
+  right: 0;
+}
+
+.post .text {
+  text-align: left;
+  padding-left: 120px;
+  padding-top: 70px;
+  padding-right: 40px;
+}
+
+.post a {
+  color:#FFFFFF;
+  text-decoration: none;
+}
+
+#footer {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  font-weight: normal;
+}
+
+#footer img {
+  vertical-align: middle;
+}
